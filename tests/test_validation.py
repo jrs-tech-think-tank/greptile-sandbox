@@ -27,6 +27,9 @@ def test_normalize_url_ok(raw, expected):
         "example.com",
         "http://",
         "javascript:alert(1)",
+        "http://example.com:abc",
+        "http://example.com:65536",
+        "http://example.com:99999",
     ],
 )
 def test_normalize_url_rejects_bad_input(raw):
@@ -40,6 +43,9 @@ def test_normalize_url_rejects_bad_input(raw):
         ("http://example.com:80/x", "http://example.com/x"),
         ("https://example.com:443/x", "https://example.com/x"),
         ("http://example.com:8080/x", "http://example.com:8080/x"),
+        ("http://[::1]:80/x", "http://[::1]/x"),
+        ("https://[::1]:443/x", "https://[::1]/x"),
+        ("http://[::1]:8080/x", "http://[::1]:8080/x"),
     ],
 )
 def test_normalize_url_strips_default_ports(raw, expected):
@@ -49,3 +55,6 @@ def test_normalize_url_strips_default_ports(raw, expected):
 def test_is_valid_url():
     assert is_valid_url("https://example.com")
     assert not is_valid_url("not a url")
+    # An out-of-range / non-numeric port must be rejected, not blow up.
+    assert not is_valid_url("http://example.com:65536")
+    assert not is_valid_url("http://example.com:abc")

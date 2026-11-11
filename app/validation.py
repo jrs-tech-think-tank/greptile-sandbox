@@ -41,7 +41,15 @@ def normalize_url(raw: str) -> str:
         raise InvalidURLError("URL must include a host")
 
     host = (parts.hostname or "").lower()
-    port = parts.port
+    try:
+        port = parts.port
+    except ValueError as exc:
+        raise InvalidURLError("URL has an invalid port") from exc
+
+    # ``hostname`` strips the brackets from IPv6 literals; restore them so the
+    # rebuilt host:port is valid.
+    if ":" in host:
+        host = f"[{host}]"
 
     # Drop the port when it is the scheme's default so equivalent URLs
     # normalize to the same string.

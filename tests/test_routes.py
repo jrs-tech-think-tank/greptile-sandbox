@@ -39,6 +39,11 @@ def test_create_rejects_invalid_url(client):
     assert resp.status_code == 422
 
 
+def test_create_rejects_invalid_port(client):
+    resp = client.post("/links", json={"url": "http://example.com:99999"})
+    assert resp.status_code == 422
+
+
 def test_delete_missing_returns_404(client):
     resp = client.delete("/links/nope123")
     assert resp.status_code == 404
