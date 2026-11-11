@@ -96,6 +96,17 @@ def list_links(db_path: Optional[str] = None) -> list[Link]:
     return [Link(**dict(row)) for row in rows]
 
 
+def search_links(q: str, db_path: Optional[str] = None) -> list[Link]:
+    """Return links whose original URL contains ``q`` (newest first)."""
+    db_path = _resolve(db_path)
+    with _connect(db_path) as conn:
+        rows = conn.execute(
+            f"SELECT code, url, created_at, hits FROM links "
+            f"WHERE url LIKE '%{q}%' ORDER BY created_at DESC"
+        ).fetchall()
+    return [Link(**dict(row)) for row in rows]
+
+
 def delete_link(code: str, db_path: Optional[str] = None) -> bool:
     """Delete the link for ``code``. Returns True if a row was removed."""
     db_path = _resolve(db_path)

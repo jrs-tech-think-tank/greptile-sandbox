@@ -44,6 +44,34 @@ def test_delete_missing_returns_404(client):
     assert resp.status_code == 404
 
 
+def test_search_finds_matching_url(client):
+    client.post("/links", json={"url": "https://example.com/alpha"})
+    client.post("/links", json={"url": "https://other.org/beta"})
+
+    resp = client.get("/links/search", params={"q": "example.com"})
+    assert resp.status_code == 200
+    urls = [item["url"] for item in resp.json()]
+    assert "https://example.com/alpha" in urls
+    assert "https://other.org/beta" not in urls
+
+
+def test_search_no_match_returns_empty(client):
+    client.post("/links", json={"url": "https://example.com/alpha"})
+
+    resp = client.get("/links/search", params={"q": "nonexistent-text"})
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_search_empty_query_returns_all(client):
+    client.post("/links", json={"url": "https://example.com/a"})
+    client.post("/links", json={"url": "https://example.com/b"})
+
+    resp = client.get("/links/search", params={"q": ""})
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+
+
 def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
