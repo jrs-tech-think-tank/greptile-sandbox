@@ -64,6 +64,15 @@ def list_links() -> list[LinkResponse]:
     return [LinkResponse.from_link(link) for link in storage.list_links()]
 
 
+@router.get("/links/{code}", response_model=LinkResponse)
+def get_link_detail(code: str) -> LinkResponse:
+    """Return a single short link's metadata without counting an access."""
+    link = storage.get_link(code, touch=False)
+    if link is None:
+        raise HTTPException(status_code=404, detail="Short code not found")
+    return LinkResponse.from_link(link)
+
+
 @router.delete("/links/{code}", status_code=204, response_class=Response)
 def delete_link(code: str) -> Response:
     """Delete a short link by code."""
@@ -75,8 +84,7 @@ def delete_link(code: str) -> Response:
 @router.get("/{code}")
 def resolve_link(code: str) -> RedirectResponse:
     """Resolve a short code and redirect to the original URL."""
-    link = storage.get_link(code)
+    link = storage.get_link(code, touch=True)
     if link is None:
         raise HTTPException(status_code=404, detail="Short code not found")
-    storage.record_hit(code)
     return RedirectResponse(url=link.url, status_code=307)

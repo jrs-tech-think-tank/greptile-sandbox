@@ -73,17 +73,29 @@ def create_link(code: str, url: str, db_path: Optional[str] = None) -> Link:
     return Link(code=code, url=url, created_at=created_at, hits=0)
 
 
-def get_link(code: str, db_path: Optional[str] = None) -> Optional[Link]:
-    """Return the link for ``code`` or None if it does not exist."""
+def get_link(
+    code: str, *, touch: bool, db_path: Optional[str] = None
+) -> Optional[Link]:
+    """Return the link for ``code`` or None if it does not exist.
+
+    When ``touch`` is True the lookup counts as an access: the link's hit
+    counter is incremented in the same call and reflected in the result.
+    """
     db_path = _resolve(db_path)
     with _connect(db_path) as conn:
         row = conn.execute(
             "SELECT code, url, created_at, hits FROM links WHERE code = ?",
             (code,),
         ).fetchone()
-    if row is None:
-        return None
-    return Link(**dict(row))
+        if row is None:
+            return None
+        link = Link(**dict(row))
+        if touch:
+            conn.execute(
+                "UPDATE links SET hits = hits + 1 WHERE code = ?", (code,)
+            )
+            link.hits += 1
+    return link
 
 
 def list_links(db_path: Optional[str] = None) -> list[Link]:

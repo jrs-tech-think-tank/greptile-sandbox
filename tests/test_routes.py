@@ -44,6 +44,27 @@ def test_delete_missing_returns_404(client):
     assert resp.status_code == 404
 
 
+def test_get_link_detail_returns_metadata(client):
+    resp = client.post("/links", json={"url": "https://example.com/x"})
+    code = resp.json()["code"]
+
+    resp = client.get(f"/links/{code}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["code"] == code
+    assert body["url"] == "https://example.com/x"
+    # Fetching metadata must not count as an access.
+    assert body["hits"] == 0
+    detail = client.get("/links")
+    item = next(i for i in detail.json() if i["code"] == code)
+    assert item["hits"] == 0
+
+
+def test_get_link_detail_missing_returns_404(client):
+    resp = client.get("/links/nope123")
+    assert resp.status_code == 404
+
+
 def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
