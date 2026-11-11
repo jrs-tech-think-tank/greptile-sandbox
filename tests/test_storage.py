@@ -10,13 +10,13 @@ def test_create_and_get(db_path):
     assert link.code == "abc1234"
     assert link.hits == 0
 
-    fetched = storage.get_link("abc1234", db_path)
+    fetched = storage.get_link("abc1234", touch=False, db_path=db_path)
     assert fetched is not None
     assert fetched.url == "https://example.com"
 
 
 def test_get_missing_returns_none(db_path):
-    assert storage.get_link("missing", db_path) is None
+    assert storage.get_link("missing", touch=False, db_path=db_path) is None
 
 
 def test_duplicate_code_raises(db_path):
@@ -36,11 +36,11 @@ def test_delete(db_path):
     storage.create_link("del1234", "https://example.com", db_path)
     assert storage.delete_link("del1234", db_path) is True
     assert storage.delete_link("del1234", db_path) is False
-    assert storage.get_link("del1234", db_path) is None
+    assert storage.get_link("del1234", touch=False, db_path=db_path) is None
 
 
 def test_record_hit(db_path):
     storage.create_link("hit1234", "https://example.com", db_path)
     storage.record_hit("hit1234", db_path)
     storage.record_hit("hit1234", db_path)
-    assert storage.get_link("hit1234", db_path).hits == 2
+    assert storage.get_link("hit1234", touch=False, db_path=db_path).hits == 2
