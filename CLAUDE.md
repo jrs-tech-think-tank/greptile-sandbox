@@ -1,33 +1,44 @@
 # CLAUDE.md
 
-## What this repo is
+## Project
 
-This repository is a **test bed for experimenting with Greptile**, an AI
-code-review tool that reviews GitHub pull requests. The application itself (a
-small FastAPI URL shortener) exists only to give Greptile real, multi-file
-code to review.
+A small FastAPI URL shortener backed by SQLite. It exposes endpoints to create
+a short link, resolve a code (HTTP redirect), list links, and delete a link.
 
-## Important rules for working here
+## Layout
 
-- **Intentional bugs are expected on feature branches.** Experiment PRs will
-  deliberately introduce bugs, smells, or questionable patterns so we can see
-  what Greptile catches.
-- **Do NOT fix, refactor, or "clean up" planted issues** unless I explicitly
-  ask you to. If you notice something that looks like a bug on a feature
-  branch, assume it is intentional and leave it alone. You may mention it, but
-  do not change it without explicit instruction.
-- **`main` is the clean baseline.** It should stay correct and well-formed.
-  Intentional problems live only on feature branches, never on `main`.
+- `app/main.py` — FastAPI app, lifespan DB initialization, `/healthz`
+- `app/routes.py` — API endpoints (create / resolve / list / delete)
+- `app/storage.py` — SQLite persistence (parameterized queries)
+- `app/ids.py` — short-code generation
+- `app/validation.py` — URL validation and normalization
+- `tests/` — pytest suite
 
-## Workflow for experiments
+## Running locally
 
-- Every experiment PR should be **small and focused** — ideally one planted
-  issue (or one tightly-related cluster) per PR so the review signal is clear.
-- **Always branch off `main`.** Each experiment gets its own branch; open the
-  PR from that branch into `main`.
-- Keep `main` green: do not merge experimental/buggy branches unless that is
-  the explicit goal of the experiment.
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-## Project structure
+Interactive API docs are then at http://127.0.0.1:8000/docs.
 
-See [`README.md`](./README.md) for the application layout, setup, and API.
+## Tests
+
+```bash
+pytest -q
+```
+
+Each test runs against an isolated temporary SQLite database.
+
+## Code style
+
+- Python 3.12; standard library plus FastAPI / Pydantic.
+- `from __future__ import annotations` at the top of modules; type hints on
+  public functions.
+- Keep modules small and single-purpose: `routes` depends on `validation`,
+  `ids`, and `storage`.
+- Use parameterized SQL queries only.
+
+See [`README.md`](./README.md) for the full API reference and examples.
