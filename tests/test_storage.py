@@ -32,6 +32,13 @@ def test_list_newest_first(db_path):
     assert set(codes) == {"aaa1111", "bbb2222"}
 
 
+def test_count_links(db_path):
+    assert storage.count_links(db_path) == 0
+    storage.create_link("cnt1111", "https://a.com", db_path)
+    storage.create_link("cnt2222", "https://b.com", db_path)
+    assert storage.count_links(db_path) == 2
+
+
 def test_delete(db_path):
     storage.create_link("del1234", "https://example.com", db_path)
     assert storage.delete_link("del1234", db_path) is True
