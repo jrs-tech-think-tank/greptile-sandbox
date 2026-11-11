@@ -101,8 +101,9 @@ def search_links(q: str, db_path: Optional[str] = None) -> list[Link]:
     db_path = _resolve(db_path)
     with _connect(db_path) as conn:
         rows = conn.execute(
-            f"SELECT code, url, created_at, hits FROM links "
-            f"WHERE url LIKE '%{q}%' ORDER BY created_at DESC"
+            "SELECT code, url, created_at, hits FROM links "
+            "WHERE url LIKE ? ORDER BY created_at DESC",
+            (f"%{q}%",),
         ).fetchall()
     return [Link(**dict(row)) for row in rows]
 

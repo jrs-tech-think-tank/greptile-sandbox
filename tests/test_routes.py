@@ -72,6 +72,15 @@ def test_search_empty_query_returns_all(client):
     assert len(resp.json()) == 2
 
 
+def test_search_quote_is_treated_as_literal(client):
+    client.post("/links", json={"url": "https://example.com/a"})
+
+    resp = client.get("/links/search", params={"q": "' OR 1=1 --"})
+    assert resp.status_code == 200
+    # The quote is matched literally, not interpreted as SQL, so no rows match.
+    assert resp.json() == []
+
+
 def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
