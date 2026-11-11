@@ -40,8 +40,26 @@ def normalize_url(raw: str) -> str:
     if not parts.netloc:
         raise InvalidURLError("URL must include a host")
 
-    # Lowercase the host portion but preserve any userinfo/port as given.
-    netloc = parts.netloc.lower()
+    host = (parts.hostname or "").lower()
+    port = parts.port
+
+    # Drop the port when it is the scheme's default so equivalent URLs
+    # normalize to the same string.
+    default_ports = {"http": 80, "https": 443}
+    if port is None or port == default_ports[scheme]:
+        hostport = host
+    else:
+        hostport = f"{host}:{port}"
+
+    # Preserve any userinfo exactly as supplied.
+    userinfo = ""
+    if parts.username is not None:
+        userinfo = parts.username
+        if parts.password is not None:
+            userinfo += f":{parts.password}"
+        userinfo += "@"
+
+    netloc = userinfo + hostport
 
     normalized = urlunsplit((scheme, netloc, parts.path, parts.query, ""))
     return normalized
