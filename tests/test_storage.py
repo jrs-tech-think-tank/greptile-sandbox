@@ -44,3 +44,18 @@ def test_record_hit(db_path):
     storage.record_hit("hit1234", db_path)
     storage.record_hit("hit1234", db_path)
     assert storage.get_link("hit1234", touch=False, db_path=db_path).hits == 2
+
+
+def test_get_link_touch_increments_and_returns_count(db_path):
+    storage.create_link("tch1234", "https://example.com", db_path)
+
+    # touch=True increments the counter and the returned link reflects it.
+    first = storage.get_link("tch1234", touch=True, db_path=db_path)
+    assert first.hits == 1
+    # ...and the increment is persisted.
+    assert storage.get_link("tch1234", touch=False, db_path=db_path).hits == 1
+
+    # A second access returns and saves the next value.
+    second = storage.get_link("tch1234", touch=True, db_path=db_path)
+    assert second.hits == 2
+    assert storage.get_link("tch1234", touch=False, db_path=db_path).hits == 2

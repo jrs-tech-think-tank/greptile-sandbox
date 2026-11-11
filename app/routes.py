@@ -67,7 +67,7 @@ def list_links() -> list[LinkResponse]:
 @router.get("/links/{code}", response_model=LinkResponse)
 def get_link_detail(code: str) -> LinkResponse:
     """Return a single short link's metadata without counting an access."""
-    link = storage.get_link(code)
+    link = storage.get_link(code, touch=False)
     if link is None:
         raise HTTPException(status_code=404, detail="Short code not found")
     return LinkResponse.from_link(link)
