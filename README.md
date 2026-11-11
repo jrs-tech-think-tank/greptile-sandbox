@@ -1,11 +1,7 @@
-# URL Shortener (Greptile Sandbox)
+# URL Shortener
 
-A small, deliberately clean FastAPI URL shortener used as a test bed for
-experimenting with [Greptile](https://greptile.com) AI code review on GitHub
-pull requests.
-
-> ⚠️ This is a sandbox. Feature branches may contain **intentional** bugs for
-> review experiments. See [`CLAUDE.md`](./CLAUDE.md) before "fixing" anything.
+A small URL shortener built with [FastAPI](https://fastapi.tiangolo.com/) and
+SQLite. Create a short code for a long URL, then resolve it with a redirect.
 
 ## Features
 
@@ -25,9 +21,6 @@ app/
   validation.py  URL validation + normalization
 tests/           pytest suite (validation, ids, storage, routes)
 ```
-
-Cross-file dependencies are intentional: `routes` depends on `validation`,
-`ids`, and `storage`; `main` wires the router and initializes storage.
 
 ## Setup
 
