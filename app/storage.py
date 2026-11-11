@@ -86,13 +86,30 @@ def get_link(code: str, db_path: Optional[str] = None) -> Optional[Link]:
     return Link(**dict(row))
 
 
-def list_links(db_path: Optional[str] = None) -> list[Link]:
-    """Return all links ordered by creation time (newest first)."""
+def list_links(
+    db_path: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+) -> list[Link]:
+    """Return links ordered by creation time (newest first).
+
+    When ``page`` and ``page_size`` are given, only that page is returned;
+    otherwise all links are returned.
+    """
     db_path = _resolve(db_path)
     with _connect(db_path) as conn:
-        rows = conn.execute(
-            "SELECT code, url, created_at, hits FROM links ORDER BY created_at DESC"
-        ).fetchall()
+        if page is not None and page_size is not None:
+            offset = page * page_size
+            rows = conn.execute(
+                "SELECT code, url, created_at, hits FROM links "
+                "ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (page_size, offset),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT code, url, created_at, hits FROM links "
+                "ORDER BY created_at DESC"
+            ).fetchall()
     return [Link(**dict(row)) for row in rows]
 
 

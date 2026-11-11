@@ -5,7 +5,7 @@ Wires together the validation, id-generation, and storage modules.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
@@ -59,9 +59,13 @@ def create_link(payload: CreateLinkRequest) -> LinkResponse:
 
 
 @router.get("/links", response_model=list[LinkResponse])
-def list_links() -> list[LinkResponse]:
-    """List all short links, newest first."""
-    return [LinkResponse.from_link(link) for link in storage.list_links()]
+def list_links(
+    page: int = Query(1, ge=1, description="1-based page number"),
+    page_size: int = Query(20, ge=1, le=100, description="items per page"),
+) -> list[LinkResponse]:
+    """List short links, newest first, one page at a time."""
+    links = storage.list_links(page=page, page_size=page_size)
+    return [LinkResponse.from_link(link) for link in links]
 
 
 @router.delete("/links/{code}", status_code=204, response_class=Response)
