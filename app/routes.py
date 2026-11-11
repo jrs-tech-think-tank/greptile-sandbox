@@ -21,6 +21,10 @@ class CreateLinkRequest(BaseModel):
     url: str
 
 
+class StatsResponse(BaseModel):
+    total_links: int
+
+
 class LinkResponse(BaseModel):
     code: str
     url: str
@@ -62,6 +66,12 @@ def create_link(payload: CreateLinkRequest) -> LinkResponse:
 def list_links() -> list[LinkResponse]:
     """List all short links, newest first."""
     return [LinkResponse.from_link(link) for link in storage.list_links()]
+
+
+@router.get("/stats", response_model=StatsResponse)
+def stats() -> StatsResponse:
+    """Return aggregate statistics about stored links."""
+    return StatsResponse(total_links=storage.count_links())
 
 
 @router.delete("/links/{code}", status_code=204, response_class=Response)

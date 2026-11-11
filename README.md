@@ -51,6 +51,7 @@ Then visit http://127.0.0.1:8000/docs for interactive API docs.
 |--------|-----------------|------------------------------------------|
 | POST   | `/links`        | Create a short link (`{"url": "..."}`)   |
 | GET    | `/links`        | List all links                           |
+| GET    | `/stats`        | Link stats (`{"total_links": N}`)        |
 | GET    | `/{code}`       | Resolve a code (307 redirect)            |
 | DELETE | `/links/{code}` | Delete a link                            |
 | GET    | `/healthz`      | Health check                             |

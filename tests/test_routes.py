@@ -44,6 +44,19 @@ def test_delete_missing_returns_404(client):
     assert resp.status_code == 404
 
 
+def test_stats_reports_total_links(client):
+    resp = client.get("/stats")
+    assert resp.status_code == 200
+    assert resp.json() == {"total_links": 0}
+
+    client.post("/links", json={"url": "https://example.com/a"})
+    client.post("/links", json={"url": "https://example.com/b"})
+
+    resp = client.get("/stats")
+    assert resp.status_code == 200
+    assert resp.json() == {"total_links": 2}
+
+
 def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200

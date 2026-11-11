@@ -96,6 +96,14 @@ def list_links(db_path: Optional[str] = None) -> list[Link]:
     return [Link(**dict(row)) for row in rows]
 
 
+def count_links(db_path: Optional[str] = None) -> int:
+    """Return the total number of stored links."""
+    db_path = _resolve(db_path)
+    with _connect(db_path) as conn:
+        row = conn.execute("SELECT COUNT(*) AS total FROM links").fetchone()
+    return row["total"]
+
+
 def delete_link(code: str, db_path: Optional[str] = None) -> bool:
     """Delete the link for ``code``. Returns True if a row was removed."""
     db_path = _resolve(db_path)
