@@ -64,6 +64,12 @@ def list_links() -> list[LinkResponse]:
     return [LinkResponse.from_link(link) for link in storage.list_links()]
 
 
+@router.get("/links/search", response_model=list[LinkResponse])
+def search_links(q: str = "") -> list[LinkResponse]:
+    """Return links whose original URL contains the search text ``q``."""
+    return [LinkResponse.from_link(link) for link in storage.search_links(q)]
+
+
 @router.delete("/links/{code}", status_code=204, response_class=Response)
 def delete_link(code: str) -> Response:
     """Delete a short link by code."""
