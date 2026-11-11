@@ -50,10 +50,27 @@ Then visit http://127.0.0.1:8000/docs for interactive API docs.
 | Method | Path            | Description                              |
 |--------|-----------------|------------------------------------------|
 | POST   | `/links`        | Create a short link (`{"url": "..."}`)   |
-| GET    | `/links`        | List all links                           |
+| GET    | `/links`        | List links, newest first (paginated)     |
 | GET    | `/{code}`       | Resolve a code (307 redirect)            |
 | DELETE | `/links/{code}` | Delete a link                            |
 | GET    | `/healthz`      | Health check                             |
+
+### Listing and pagination
+
+`GET /links` returns one page of links, newest first. Control the window with
+two optional query parameters:
+
+| Param       | Default | Bounds        | Description            |
+|-------------|---------|---------------|------------------------|
+| `page`      | `1`     | `>= 1`        | 1-based page number    |
+| `page_size` | `20`    | `1`–`100`     | items per page         |
+
+Request successive pages (`?page=2`, `?page=3`, …) to retrieve the remaining
+links; a page past the last result returns an empty list.
+
+```bash
+curl -s 'localhost:8000/links?page=1&page_size=50'
+```
 
 ### Example
 

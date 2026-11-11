@@ -14,6 +14,9 @@ from typing import Optional
 
 DEFAULT_DB_PATH = os.environ.get("SHORTENER_DB", "shortener.db")
 
+# Largest value SQLite can store/bind as a signed 64-bit integer.
+_SQLITE_MAX_INT = 2**63 - 1
+
 
 @dataclass
 class Link:
@@ -86,13 +89,35 @@ def get_link(code: str, db_path: Optional[str] = None) -> Optional[Link]:
     return Link(**dict(row))
 
 
-def list_links(db_path: Optional[str] = None) -> list[Link]:
-    """Return all links ordered by creation time (newest first)."""
+def list_links(
+    db_path: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+) -> list[Link]:
+    """Return links ordered by creation time (newest first).
+
+    When ``page`` and ``page_size`` are given, only that page is returned;
+    otherwise all links are returned.
+    """
     db_path = _resolve(db_path)
     with _connect(db_path) as conn:
-        rows = conn.execute(
-            "SELECT code, url, created_at, hits FROM links ORDER BY created_at DESC"
-        ).fetchall()
+        if page is not None and page_size is not None:
+            offset = (page - 1) * page_size
+            # SQLite binds integers as signed 64-bit; an offset beyond that
+            # range is simply past the end of the data, so return nothing
+            # rather than letting the bind raise.
+            if offset > _SQLITE_MAX_INT:
+                return []
+            rows = conn.execute(
+                "SELECT code, url, created_at, hits FROM links "
+                "ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (page_size, offset),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT code, url, created_at, hits FROM links "
+                "ORDER BY created_at DESC"
+            ).fetchall()
     return [Link(**dict(row)) for row in rows]
 
 
