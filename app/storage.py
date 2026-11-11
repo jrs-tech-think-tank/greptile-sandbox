@@ -14,6 +14,9 @@ from typing import Optional
 
 DEFAULT_DB_PATH = os.environ.get("SHORTENER_DB", "shortener.db")
 
+# Largest value SQLite can store/bind as a signed 64-bit integer.
+_SQLITE_MAX_INT = 2**63 - 1
+
 
 @dataclass
 class Link:
@@ -99,7 +102,12 @@ def list_links(
     db_path = _resolve(db_path)
     with _connect(db_path) as conn:
         if page is not None and page_size is not None:
-            offset = page * page_size
+            offset = (page - 1) * page_size
+            # SQLite binds integers as signed 64-bit; an offset beyond that
+            # range is simply past the end of the data, so return nothing
+            # rather than letting the bind raise.
+            if offset > _SQLITE_MAX_INT:
+                return []
             rows = conn.execute(
                 "SELECT code, url, created_at, hits FROM links "
                 "ORDER BY created_at DESC LIMIT ? OFFSET ?",
